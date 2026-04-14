@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../core/app_router.dart';
 import '../../models/user_model.dart';
-import '../../view_model/cubit/auth_cubit.dart';
 import '../widgets/loading_button.dart';
 import '../widgets/app_text_field.dart';
 
@@ -20,57 +17,25 @@ class _ProfileScreenState extends State<ProfileScreen>
   bool get wantKeepAlive => true;
 
   @override
+  // ignore: must_call_super
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: () => _confirmLogout(context),
-          ),
-        ],
-      ),
-      body: BlocBuilder<AuthCubit, AuthState>(
-        builder: (context, state) {
-          if (state is AuthAuthenticated) {
-            return _ProfileBody(user: state.user);
-          }
-          if (state is AuthLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          return const SizedBox.shrink();
-        },
-      ),
-    );
-  }
-
-  void _confirmLogout(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.read<AuthCubit>().logout().then((_) {
-                if (context.mounted) {
-                  Navigator.pushReplacementNamed(context, AppRouter.login);
-                }
-              });
-            },
-            child:
-                const Text('Logout', style: TextStyle(color: Colors.red)),
-          ),
-        ],
+      appBar: AppBar(title: const Text('Profile')),
+      body: _ProfileBody(
+        user: const UserModel(
+          id: '',
+          firstName: 'Guest',
+          secondName: '',
+          thirdName: '',
+          lastName: 'User',
+          email: 'guest@app.com',
+          userName: 'guest',
+          phoneNumber: '',
+          nationalId: '',
+          birthdate: '2000-01-01T00:00:00Z',
+          cityId: 1,
+        ),
       ),
     );
   }

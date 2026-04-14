@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../views/auth/login_screen.dart';
-import '../views/auth/register_screen.dart';
 import '../views/auth/splash_screen.dart';
 import '../views/home/home_screen.dart';
 import '../views/ticket/create_ticket_screen.dart';
@@ -9,8 +7,6 @@ import '../views/ticket/ticket_detail_screen.dart';
 
 class AppRouter {
   static const String splash = '/';
-  static const String login = '/login';
-  static const String register = '/register';
   static const String home = '/home';
   static const String ticketDetail = '/ticket/detail';
   static const String createTicket = '/ticket/create';
@@ -19,10 +15,6 @@ class AppRouter {
     switch (settings.name) {
       case splash:
         return MaterialPageRoute(builder: (_) => const SplashScreen());
-      case login:
-        return MaterialPageRoute(builder: (_) => const LoginScreen());
-      case register:
-        return MaterialPageRoute(builder: (_) => const RegisterScreen());
       case home:
         return MaterialPageRoute(builder: (_) => const HomeScreen());
       case ticketDetail:
