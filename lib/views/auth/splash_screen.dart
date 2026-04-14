@@ -16,12 +16,16 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<AppCubit>().initialize();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AppCubit>().initialize();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthCubit, AuthState>(
+      listenWhen: (_, current) =>
+          current is AuthAuthenticated || current is AuthUnauthenticated,
       listener: (context, state) {
         if (state is AuthAuthenticated) {
           Navigator.pushReplacementNamed(context, AppRouter.home);
