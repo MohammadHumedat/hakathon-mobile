@@ -29,6 +29,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
   CityModel? _selectedCity;
   List<CityModel> _cities = [];
   bool _loadingCities = true;
+  String? _citiesError;
 
   @override
   void initState() {
@@ -37,13 +38,21 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
   }
 
   Future<void> _loadCities() async {
+    setState(() { _loadingCities = true; _citiesError = null; });
     try {
       final cities = await CityService(
         api: ApiService(baseUrl: AppConstants.baseUrl),
       ).getCities();
-      if (mounted) setState(() { _cities = cities; _loadingCities = false; });
-    } catch (_) {
-      if (mounted) setState(() => _loadingCities = false);
+      if (mounted) {
+        setState(() { _cities = cities; _loadingCities = false; });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _loadingCities = false;
+          _citiesError = 'Could not load cities. Tap to retry.';
+        });
+      }
     }
   }
 
@@ -151,24 +160,41 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  _loadingCities
-                      ? const LinearProgressIndicator()
-                      : DropdownButtonFormField<CityModel>(
-                          value: _selectedCity,
-                          decoration: InputDecoration(
-                            labelText: 'City',
-                            prefixIcon: const Icon(Icons.location_city_outlined),
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                          ),
-                          items: _cities
-                              .map((c) => DropdownMenuItem(
-                                    value: c,
-                                    child: Text(c.name),
-                                  ))
-                              .toList(),
-                          onChanged: (v) => setState(() => _selectedCity = v),
+                  if (_loadingCities)
+                    const LinearProgressIndicator()
+                  else if (_citiesError != null)
+                    InkWell(
+                      onTap: _loadCities,
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: 'City',
+                          prefixIcon: const Icon(Icons.location_city_outlined),
+                          suffixIcon: const Icon(Icons.refresh, color: Colors.orange),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          errorText: _citiesError,
                         ),
+                        child: const Text('Tap to retry',
+                            style: TextStyle(color: Colors.grey)),
+                      ),
+                    )
+                  else
+                    DropdownButtonFormField<CityModel>(
+                      value: _selectedCity,
+                      decoration: InputDecoration(
+                        labelText: 'City',
+                        prefixIcon: const Icon(Icons.location_city_outlined),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      items: _cities
+                          .map((c) => DropdownMenuItem(
+                                value: c,
+                                child: Text(c.name),
+                              ))
+                          .toList(),
+                      onChanged: (v) => setState(() => _selectedCity = v),
+                    ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<Sector>(
                     value: _sector,
