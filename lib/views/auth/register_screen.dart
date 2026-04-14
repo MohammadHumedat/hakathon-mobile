@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/app_router.dart';
+import '../../core/palestine_cities.dart';
 import '../../models/city_model.dart';
-import '../../services/city_service.dart';
-import '../../services/api_service.dart';
-import '../../core/constants.dart';
 import '../../view_model/cubit/auth_cubit.dart';
 import '../widgets/app_text_field.dart';
 import '../widgets/loading_button.dart';
@@ -30,35 +28,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordCtrl = TextEditingController();
   bool _obscurePassword = true;
   DateTime? _birthdate;
-  CityModel? _selectedCity;
-  List<CityModel> _cities = [];
-  bool _loadingCities = true;
-  String? _citiesError;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadCities();
-  }
-
-  Future<void> _loadCities() async {
-    setState(() { _loadingCities = true; _citiesError = null; });
-    try {
-      final cities = await CityService(
-        api: ApiService(baseUrl: AppConstants.baseUrl),
-      ).getCities();
-      if (mounted) {
-        setState(() { _cities = cities; _loadingCities = false; });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _loadingCities = false;
-          _citiesError = 'Could not load cities. Tap to retry.';
-        });
-      }
-    }
-  }
+  CityModel _selectedCity = PalestineCities.defaultCity;
+  final List<CityModel> _cities = PalestineCities.all;
 
   Future<void> _pickBirthdate() async {
     final picked = await showDatePicker(
@@ -78,12 +49,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
       return;
     }
-    if (_selectedCity == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select your city')),
-      );
-      return;
-    }
     context.read<AuthCubit>().register(
       firstName: _firstNameCtrl.text.trim(),
       secondName: _secondNameCtrl.text.trim(),
@@ -95,7 +60,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       nationalId: _nationalIdCtrl.text.trim(),
       password: _passwordCtrl.text,
       birthdate: _birthdate!.toIso8601String(),
-      cityId: _selectedCity!.id,
+      cityId: _selectedCity.id,
     );
   }
 
@@ -193,41 +158,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 12),
                   // City dropdown
-                  if (_loadingCities)
-                    const LinearProgressIndicator()
-                  else if (_citiesError != null)
-                    InkWell(
-                      onTap: _loadCities,
-                      child: InputDecorator(
-                        decoration: InputDecoration(
-                          labelText: 'City',
-                          prefixIcon: const Icon(Icons.location_city_outlined),
-                          suffixIcon: const Icon(Icons.refresh, color: Colors.orange),
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          errorText: _citiesError,
-                        ),
-                        child: const Text('Tap to retry',
-                            style: TextStyle(color: Colors.grey)),
-                      ),
-                    )
-                  else
-                    DropdownButtonFormField<CityModel>(
-                      value: _selectedCity,
-                      decoration: InputDecoration(
-                        labelText: 'City',
-                        prefixIcon: const Icon(Icons.location_city_outlined),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                      items: _cities
-                          .map((c) => DropdownMenuItem(
-                                value: c,
-                                child: Text(c.name),
-                              ))
-                          .toList(),
-                      onChanged: (v) => setState(() => _selectedCity = v),
+                  DropdownButtonFormField<CityModel>(
+                    value: _selectedCity,
+                    decoration: InputDecoration(
+                      labelText: 'City',
+                      prefixIcon: const Icon(Icons.location_city_outlined),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
+                    items: _cities
+                        .map((c) => DropdownMenuItem(
+                              value: c,
+                              child: Text(c.name),
+                            ))
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) setState(() => _selectedCity = v);
+                    },
+                  ),
                   const SizedBox(height: 12),
                   AppTextField(
                     controller: _passwordCtrl,
